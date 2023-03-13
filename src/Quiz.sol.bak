@@ -1,0 +1,93 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+import "forge-std/console.sol";
+
+
+contract Quiz{
+    struct Quiz_item {
+      uint id;
+      string question;
+      string answer;
+      uint min_bet;
+      uint max_bet;
+   }
+    
+    mapping(address => uint256)[] public bets;
+    uint public vault_balance;
+    address owner;
+
+    
+    
+    uint q_index = 1;
+    mapping(uint => Quiz_item) public quizs;
+
+
+    constructor () {
+        Quiz_item memory q;
+
+        owner = msg.sender;
+
+        q.id = 1;
+        q.question = "1+1=?";
+        q.answer = "2";
+        q.min_bet = 1 ether;
+        q.max_bet = 2 ether;
+
+
+        // 만들자마자 하나더함
+        addQuiz(q);
+    }
+
+    function addQuiz(Quiz_item memory q) public {
+        require(msg.sender == owner);
+
+        // 생성과 동시에 정답 제거해야 함
+        // q.answer = "";
+        quizs[q_index] = q;
+
+        q_index += 1;
+    }
+
+    function getAnswer(uint quizId) public view returns (string memory){
+        Quiz_item memory q;
+        q = quizs[quizId];
+        q.answer = "";
+
+        return q.answer;
+    }
+
+    function getQuiz(uint quizId) public view returns (Quiz_item memory) {
+        return quizs[quizId];
+    }
+
+    function getQuizNum() public view returns (uint){
+        return q_index - 1;
+    }
+    
+
+
+
+    function betToPlay(uint quizId) public payable {
+        assert(!(quizs[quizId].max_bet < msg.value));
+        assert(!(quizs[quizId].min_bet > msg.value));
+
+        // 예시로 address(0x123)를 사용합니다.
+        address bettor = address(msg.sender);
+        
+        // bets 배열에 새로운 매핑을 추가합니다.
+        bets.push();
+        
+        // bets 배열의 마지막 요소에 bettor 주소와 _betAmount 값을 매핑합니다.
+        bets[bets.length-1][bettor] = msg.value;
+    }
+
+    function solveQuiz(uint quizId, string memory ans) public returns (bool) {
+        return true;
+        // return keccak256(bytes(quizs[quizId].answer)) == keccak256(bytes(ans));
+    }
+
+    function claim() public {
+    }
+
+}

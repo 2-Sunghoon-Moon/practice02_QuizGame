@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+
 import "forge-std/Test.sol";
 import "../src/Quiz.sol";
 
@@ -18,13 +19,14 @@ contract QuizTest is Test {
     }
 
     function testAddQuizACL() public {
-        uint quiz_num_before = quiz.getQuizNum();
+        uint quiz_num_before = quiz.getQuizNum();   
         Quiz.Quiz_item memory q;
         q.id = quiz_num_before + 1;
         q.question = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         q.answer = "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB";
         q.min_bet = 1 ether;
         q.max_bet = 2 ether;
+        
         vm.prank(address(1));
         vm.expectRevert();
         quiz.addQuiz(q);
@@ -32,11 +34,18 @@ contract QuizTest is Test {
 
     function testGetQuizSecurity() public {
         Quiz.Quiz_item memory q = quiz.getQuiz(1);
+        console.log(q.answer);
         assertEq(q.answer, "");
     }
 
     function testAddQuizGetQuiz() public {
+        console.log("[+] testAddQuizGetQuiz()");
+
+
         uint quiz_num_before = quiz.getQuizNum();
+        console.log("    quiz_num_before: ", quiz_num_before);
+
+
         Quiz.Quiz_item memory q;
         q.id = quiz_num_before + 1;
         q.question = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -72,6 +81,7 @@ contract QuizTest is Test {
     function testMultiBet() public {
         quiz.betToPlay{value: q1.min_bet}(1);
         quiz.betToPlay{value: q1.min_bet}(1);
+
         assertEq(quiz.bets(0, address(this)), q1.min_bet * 2);
     }
 
@@ -81,21 +91,43 @@ contract QuizTest is Test {
     }
 
     function testSolve2() public {
+        console.log("[+] testSolve2()");
+
+
         quiz.betToPlay{value: q1.min_bet}(1);
+
         uint256 prev_vb = quiz.vault_balance();
+        console.log("    prev_vb: ", prev_vb);
         uint256 prev_bet = quiz.bets(0, address(this));
+        console.log("    prev_bet: ", prev_bet);
         assertEq(quiz.solveQuiz(1, ""), false);
+        
+        
         uint256 bet = quiz.bets(0, address(this));
         assertEq(bet, 0);
+        
+        console.log("    prev_vb + prev_bet: ", prev_vb + prev_bet);
+        console.log("    quiz.vault_balance()", quiz.vault_balance());
         assertEq(prev_vb + prev_bet, quiz.vault_balance());
     }
 
+
     function testClaim() public {
+        console.log("[+] testClaim()");
+
         quiz.betToPlay{value: q1.min_bet}(1);
+        console.log("    quiz.betToPlay{value: q1.min_bet}(1);");
+
+
         quiz.solveQuiz(1, quiz.getAnswer(1));
+        
+
         uint256 prev_balance = address(this).balance;
+        console.log("    prev_balance:", prev_balance);
         quiz.claim();
+
         uint256 balance = address(this).balance;
+        console.log("    balance:", balance);
         assertEq(balance - prev_balance, q1.min_bet * 2);
     }
 
